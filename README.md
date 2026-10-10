@@ -15,6 +15,21 @@ pip install -r requirements.txt
 
 The following commands generate the random and homology-aware grouped split manifests, run the main PoplarCold-PUGAT model, and evaluate the five baseline methods.
 
+### Preprocess the input data
+
+```bash
+python code/Prepare_data.py \
+  --data_dir data \
+  --raw_counts_tsv data/E-MTAB-5540-raw-counts.tsv \
+  --de_table_tsv data/E-MTAB-5540-analytics.tsv \
+  --positives_xlsx data/Positive genes.xlsx \
+  --ppi_csv data/PPI.csv \
+  --ppi_score_threshold 800 \
+  --coexp_corr_threshold 0.75 \
+  --coexp_top_mr 15 \
+  --output_dir data/preprocessed_label
+```
+
 ### 1. Generate the random-split manifest
 
 ```bash
