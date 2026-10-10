@@ -1,117 +1,109 @@
-# PoplarCold-PUGAT
-
-Official implementation and reproducibility materials for **PoplarCold-PUGAT**, a positive-unlabeled heterogeneous graph attention framework for prioritizing cold-associated genes in *Populus trichocarpa*.
-
-
-## Installation
-
-```bash
-git clone https://github.com/Wenhui-Chen111/PoplarCold-PUGAT.git
-cd PoplarCold-PUGAT
-pip install -r requirements.txt
-```
-
 ## Core reproduction pipeline
 
-The following commands generate the random and homology-aware grouped split manifests, run the main PoplarCold-PUGAT model, and evaluate the five baseline methods.
+The following workflow prepares the input datasets, generates random and homology-aware grouped split manifests, trains the PoplarCold-PUGAT model, evaluates baseline methods, and performs additional validation analyses.
 
-### Preprocess the input data
+---
+
+## 1. Prepare data
 
 ```bash
 python code/Prepare_data.py \
-  --data_dir data \
-  --raw_counts_tsv data/E-MTAB-5540-raw-counts.tsv \
-  --de_table_tsv data/E-MTAB-5540-analytics.tsv \
-  --positives_xlsx data/Positive genes.xlsx \
-  --ppi_csv data/PPI.csv \
+  --data_dir <directory_containing_input_datasets> \
+  --raw_counts_tsv <raw_expression_count_matrix> \
+  --de_table_tsv <differential_expression_table> \
+  --positives_xlsx <known_cold_associated_positive_genes> \
+  --ppi_csv <protein_interaction_network> \
   --ppi_score_threshold 800 \
   --coexp_corr_threshold 0.75 \
   --coexp_top_mr 15 \
-  --output_dir data/preprocessed_label
+  --output_dir <preprocessed_dataset_directory>
 ```
 
-### 1. Generate the random-split manifest
+
+---
+
+## 2. Generate random split manifest
+
+Create random train/validation/test split information:
 
 ```bash
 python code/Train_ColdPU.py \
-  --data_dir ${DATA_DIR} \
+  --data_dir <preprocessed_dataset_directory> \
   --split_mode random \
   --num_repeats 10 \
   --seed 42 \
   --manifest_only \
-  --save_root results/random_manifest
+  --save_root <random_split_manifest_directory>
 ```
 
-### 2. Generate the homology-aware grouped-split manifest
+---
+
+## 3. Generate homology-aware grouped split manifest
+
+Generate grouped splits based on gene homology/grouping information:
 
 ```bash
 python code/Train_ColdPU.py \
-  --data_dir ${DATA_DIR} \
-  --seed_metadata ${SEED_META} \
+  --data_dir <preprocessed_dataset_directory> \
+  --seed_metadata <gene_grouping_metadata_file> \
   --split_mode grouped \
   --num_repeats 10 \
   --seed 42 \
   --manifest_only \
-  --save_root results/grouped_manifest
+  --save_root <grouped_split_manifest_directory>
 ```
 
-### 3. Run PoplarCold-PUGAT
+The grouping metadata should contain the gene identifiers and grouping information required for homology-aware splitting.
 
-Random split:
+---
+
+## 4. Train PoplarCold-PUGAT
+
+### Random split evaluation
 
 ```bash
 python code/Train_ColdPU.py \
-  --data_dir ${DATA_DIR} \
+  --data_dir <preprocessed_dataset_directory> \
   --split_mode random \
-  --split_manifest_in results/random_manifest/split_manifest.csv \
-  --save_root results/main_random
+  --split_manifest_in <random_split_manifest_file> \
+  --save_root <random_split_model_output_directory>
 ```
 
-Grouped split:
+### Homology-aware grouped split evaluation
 
 ```bash
 python code/Train_ColdPU.py \
-  --data_dir ${DATA_DIR} \
-  --seed_metadata ${SEED_META} \
+  --data_dir <preprocessed_dataset_directory> \
+  --seed_metadata <gene_grouping_metadata_file> \
   --split_mode grouped \
-  --split_manifest_in results/grouped_manifest/split_manifest.csv \
-  --save_root results/main_grouped
+  --split_manifest_in <grouped_split_manifest_file> \
+  --save_root <grouped_split_model_output_directory>
 ```
 
-### 4. Run the five baseline methods
+---
 
-Random split:
+## 5. Run baseline methods
+
+The framework evaluates five baseline approaches for comparison.
+
+### Random split baseline evaluation
 
 ```bash
 python code/run_all_baselines.py \
-  --data_dir ${DATA_DIR} \
-  --split_manifest results/random_manifest/split_manifest.csv \
+  --data_dir <preprocessed_dataset_directory> \
+  --split_manifest <random_split_manifest_file> \
   --split_mode random \
-  --out_root results/baselines_random
+  --out_root <random_split_baseline_output_directory>
 ```
 
-Grouped split:
+### Homology-aware grouped split baseline evaluation
 
 ```bash
 python code/run_all_baselines.py \
-  --data_dir ${DATA_DIR} \
-  --split_manifest results/grouped_manifest/split_manifest.csv \
+  --data_dir <preprocessed_dataset_directory> \
+  --split_manifest <grouped_split_manifest_file> \
   --split_mode grouped \
-  --out_root results/baselines_grouped
+  --out_root <grouped_split_baseline_output_directory>
 ```
 
-## Reviewer-requested standalone analyses
-
-Additional analyses requested during peer review are provided as standalone scripts:
-
-- `code/Evidence_Separation_Experiment.py` — evidence-separation analysis.
-- `code/PU_Objective_Controls.py` — matched PU-objective and unlabeled-sampling controls.
-- `code/Run_enrichment.py` — GO, KEGG, and transcription-factor-family enrichment.
-- `code/Run_independent_cold_validation.py` — independent cold-treatment transcriptome validation.
-- `code/Run_external_validation_controls.py` — expression-only and matched-random external-validation controls.
-
-Run any script with `--help` to display its required arguments, for example:
-
-```bash
-python code/Run_enrichment.py --help
-```
+---
