@@ -1,6 +1,6 @@
 ## Core reproduction pipeline
 
-The following workflow prepares the input datasets, generates random and homology-aware grouped split manifests, trains the PoplarCold-PUGAT model, evaluates baseline methods, and performs additional validation analyses.
+The following workflow prepares the input datasets, generates random and homology-aware grouped split manifests, trains the PoplarCold-PUGAT model and evaluates baseline methods.
 
 ---
 
