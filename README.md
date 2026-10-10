@@ -15,11 +15,6 @@ pip install -r requirements.txt
 
 The following commands generate the random and homology-aware grouped split manifests, run the main PoplarCold-PUGAT model, and evaluate the five baseline methods.
 
-```bash
-DATA_DIR=data/preprocessed_label_independent_ppi800_corr0.75
-SEED_META=data/Supplementary_Data_1_revised_final.xlsx
-```
-
 ### 1. Generate the random-split manifest
 
 ```bash
