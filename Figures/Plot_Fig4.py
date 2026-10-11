@@ -11,56 +11,10 @@ rcParams["pdf.fonttype"] = 42
 rcParams["ps.fonttype"] = 42
 rcParams["svg.fonttype"] = "none"
 
-DATA_COLUMNS = ["split_scheme", "condition", "metric", "mean", "ci95_low", "ci95_high"]
-DATA_ROWS = [
-    ("random", "full",                   "nDCG@100",   0.550, 0.443, 0.660),
-    ("random", "full_uniform",           "nDCG@100",   0.421, 0.352, 0.501),
-    ("random", "nnpu_only",              "nDCG@100",   0.243, 0.189, 0.296),
-    ("random", "ranking_only_highscore", "nDCG@100",   0.461, 0.357, 0.573),
-    ("random", "bce_highscore",          "nDCG@100",   0.378, 0.274, 0.497),
-
-    ("random", "full",                   "Recall@100", 0.464, 0.359, 0.575),
-    ("random", "full_uniform",           "Recall@100", 0.333, 0.267, 0.413),
-    ("random", "nnpu_only",              "Recall@100", 0.195, 0.160, 0.226),
-    ("random", "ranking_only_highscore", "Recall@100", 0.385, 0.300, 0.487),
-    ("random", "bce_highscore",          "Recall@100", 0.287, 0.189, 0.400),
-
-    ("random", "full",                   "AUPRC",      0.391, 0.272, 0.516),
-    ("random", "full_uniform",           "AUPRC",      0.245, 0.174, 0.341),
-    ("random", "nnpu_only",              "AUPRC",      0.103, 0.070, 0.135),
-    ("random", "ranking_only_highscore", "AUPRC",      0.300, 0.192, 0.423),
-    ("random", "bce_highscore",          "AUPRC",      0.232, 0.122, 0.354),
-
-    ("random", "full",                   "AUROC",      0.837, 0.811, 0.864),
-    ("random", "full_uniform",           "AUROC",      0.826, 0.805, 0.850),
-    ("random", "nnpu_only",              "AUROC",      0.782, 0.749, 0.811),
-    ("random", "ranking_only_highscore", "AUROC",      0.837, 0.813, 0.861),
-    ("random", "bce_highscore",          "AUROC",      0.782, 0.744, 0.825),
-
-    ("grouped", "full",                   "nDCG@100",   0.377, 0.269, 0.490),
-    ("grouped", "full_uniform",           "nDCG@100",   0.216, 0.167, 0.261),
-    ("grouped", "nnpu_only",              "nDCG@100",   0.119, 0.085, 0.149),
-    ("grouped", "ranking_only_highscore", "nDCG@100",   0.256, 0.202, 0.323),
-    ("grouped", "bce_highscore",          "nDCG@100",   0.246, 0.160, 0.346),
-
-    ("grouped", "full",                   "Recall@100", 0.300, 0.196, 0.407),
-    ("grouped", "full_uniform",           "Recall@100", 0.171, 0.134, 0.206),
-    ("grouped", "nnpu_only",              "Recall@100", 0.120, 0.091, 0.148),
-    ("grouped", "ranking_only_highscore", "Recall@100", 0.195, 0.149, 0.252),
-    ("grouped", "bce_highscore",          "Recall@100", 0.200, 0.127, 0.284),
-
-    ("grouped", "full",                   "AUPRC",      0.223, 0.127, 0.331),
-    ("grouped", "full_uniform",           "AUPRC",      0.083, 0.061, 0.105),
-    ("grouped", "nnpu_only",              "AUPRC",      0.037, 0.025, 0.048),
-    ("grouped", "ranking_only_highscore", "AUPRC",      0.112, 0.075, 0.166),
-    ("grouped", "bce_highscore",          "AUPRC",      0.113, 0.051, 0.192),
-
-    ("grouped", "full",                   "AUROC",      0.806, 0.766, 0.847),
-    ("grouped", "full_uniform",           "AUROC",      0.760, 0.730, 0.786),
-    ("grouped", "nnpu_only",              "AUROC",      0.755, 0.727, 0.777),
-    ("grouped", "ranking_only_highscore", "AUROC",      0.777, 0.747, 0.805),
-    ("grouped", "bce_highscore",          "AUROC",      0.780, 0.741, 0.822),
-]
+# Control-condition summaries are preserved from the supplied Fig.4 script.
+# The full-model summaries are always read from the same source as Fig.2.
+SOURCE = Path(__file__).with_name("Primary_summary.csv")
+CONTROL_SOURCE = Path(__file__).with_name("Fig4_plot_data.csv")
 
 SHOW_VALUE_LABELS = True
 VALUE_LABEL_ROTATION = 0
@@ -162,7 +116,17 @@ def metric_panel(ax, data, split_name, metric, panel_label):
 
 
 def main():
-    df = pd.DataFrame(DATA_ROWS, columns=DATA_COLUMNS)
+    df = pd.read_csv(CONTROL_SOURCE, float_precision="round_trip")
+    summary = pd.read_csv(SOURCE, float_precision="round_trip")
+    for scheme in ["random", "grouped"]:
+        row = summary.loc[summary["split_scheme"].eq(scheme)
+                          & summary["method"].eq("PoplarCold-PUGAT")].iloc[0]
+        for metric in METRICS:
+            mask = (df["split_scheme"].eq(scheme) & df["condition"].eq("full")
+                    & df["metric"].eq(metric))
+            df.loc[mask, ["mean", "ci95_low", "ci95_high"]] = [
+                row[f"{metric}_mean"], row[f"{metric}_CI95_boot_low"],
+                row[f"{metric}_CI95_boot_high"]]
 
     fig, axes = plt.subplots(2, 4, figsize=(16.2, 9.0), sharey=False)
 
