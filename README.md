@@ -7,7 +7,7 @@ The following workflow prepares the input datasets, generates random and homolog
 ## 1. Prepare data
 
 ```bash
-python code/Prepare_data.py \
+python Prepare_data.py \
   --data_dir <directory_containing_input_datasets> \
   --raw_counts_tsv <raw_expression_count_matrix> \
   --de_table_tsv <differential_expression_table> \
@@ -27,7 +27,7 @@ python code/Prepare_data.py \
 Create random train/validation/test split information:
 
 ```bash
-python code/Train_ColdPU.py \
+python Train_ColdPU.py \
   --data_dir <preprocessed_dataset_directory> \
   --split_mode random \
   --num_repeats 10 \
@@ -43,7 +43,7 @@ python code/Train_ColdPU.py \
 Generate grouped splits based on gene homology/grouping information:
 
 ```bash
-python code/Train_ColdPU.py \
+python Train_ColdPU.py \
   --data_dir <preprocessed_dataset_directory> \
   --seed_metadata <gene_grouping_metadata_file> \
   --split_mode grouped \
@@ -62,7 +62,7 @@ The grouping metadata should contain the gene identifiers and grouping informati
 ### Random split evaluation
 
 ```bash
-python code/Train_ColdPU.py \
+python Train_ColdPU.py \
   --data_dir <preprocessed_dataset_directory> \
   --split_mode random \
   --split_manifest_in <random_split_manifest_file> \
@@ -89,7 +89,7 @@ The framework evaluates five baseline approaches for comparison.
 ### Random split baseline evaluation
 
 ```bash
-python code/run_all_baselines.py \
+python run_all_baselines.py \
   --data_dir <preprocessed_dataset_directory> \
   --split_manifest <random_split_manifest_file> \
   --split_mode random \
@@ -99,7 +99,7 @@ python code/run_all_baselines.py \
 ### Homology-aware grouped split baseline evaluation
 
 ```bash
-python code/run_all_baselines.py \
+python run_all_baselines.py \
   --data_dir <preprocessed_dataset_directory> \
   --split_manifest <grouped_split_manifest_file> \
   --split_mode grouped \
